@@ -87,7 +87,7 @@ private val FunctionInliningPhase = makeJsPhase(
     },
     name = "FunctionInliningPhase",
     description = "Perform function inlining",
-    prerequisite = setOf(ModuleCopyingPhase, LateinitLoweringPhase, ArrayInlineConstructorLoweringPhase, CoroutineIntrinsicLoweringPhase)
+    prerequisite = setOf(/*ModuleCopyingPhase, */LateinitLoweringPhase, ArrayInlineConstructorLoweringPhase, CoroutineIntrinsicLoweringPhase)
 )
 
 private val RemoveInlineFunctionsWithReifiedTypeParametersLoweringPhase = makeJsPhase(
@@ -341,7 +341,7 @@ val jsPhases = listOf(
     CoroutineIntrinsicLoweringPhase,
     ArrayInlineConstructorLoweringPhase,
     LateinitLoweringPhase,
-    ModuleCopyingPhase,
+//    ModuleCopyingPhase,
     FunctionInliningPhase,
     RemoveInlineFunctionsWithReifiedTypeParametersLoweringPhase,
     ThrowableSuccessorsLoweringPhase,

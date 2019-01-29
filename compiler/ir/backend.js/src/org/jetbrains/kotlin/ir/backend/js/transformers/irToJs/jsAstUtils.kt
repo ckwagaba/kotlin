@@ -17,6 +17,8 @@ fun jsVar(name: JsName, initializer: IrExpression?, context: JsGenerationContext
     return JsVars(JsVars.JsVar(name, jsInitializer))
 }
 
+fun isElseBranch(branch: IrBranch, isLast: Boolean) = branch is IrElseBranch || ((branch.condition as? IrConst<Boolean>)?.value == true && isLast)
+
 fun <T : JsNode, D : JsGenerationContext> IrWhen.toJsNode(
     tr: BaseIrElementToJsNodeTransformer<T, D>,
     data: D,
@@ -24,7 +26,7 @@ fun <T : JsNode, D : JsGenerationContext> IrWhen.toJsNode(
 ): T? =
     branches.foldRight<IrBranch, T?>(null) { br, n ->
         val body = br.result.accept(tr, data)
-        if (br is IrElseBranch) body
+        if (isElseBranch(br, br === branches.last())) body
         else {
             val condition = br.condition.accept(IrElementToJsExpressionTransformer(), data)
             node(condition, body, n)

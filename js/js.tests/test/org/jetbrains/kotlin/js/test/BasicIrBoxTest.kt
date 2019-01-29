@@ -115,7 +115,7 @@ abstract class BasicIrBoxTest(
             FqName((testPackage?.let { "$it." } ?: "") + testFunction),
             false,
             dependencies,
-            irDependencies,
+            irDependencies.mapNotNull { it },
             runtimeResult.moduleDescriptor as ModuleDescriptorImpl
         )
 
