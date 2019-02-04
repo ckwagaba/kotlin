@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.resolve.calls
 import org.jetbrains.kotlin.builtins.getReturnTypeFromFunctionType
 import org.jetbrains.kotlin.builtins.getValueParameterTypesFromFunctionType
 import org.jetbrains.kotlin.builtins.isFunctionOrSuspendFunctionType
-import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.contracts.EffectSystem
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
@@ -330,11 +329,7 @@ class CallCompleter(
 
         if (results != null && results.isSingleResult) {
             val resolvedCall = results.resultingCall
-            if (deparenthesized is KtWhenExpression &&
-                context.languageVersionSettings.supportsFeature(LanguageFeature.CoerceNonExhaustiveWhenToUnit)
-            ) {
-                updatedType = context.trace[BindingContext.COERCED_WHEN_EXPRESSION_TYPE, deparenthesized]
-            } else if (!convertedConst) {
+            if (!convertedConst) {
                 updatedType =
                     if (resolvedCall.hasInferredReturnType())
                         resolvedCall.makeNullableTypeIfSafeReceiver(resolvedCall.resultingDescriptor?.returnType, context)

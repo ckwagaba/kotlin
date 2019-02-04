@@ -67,7 +67,7 @@ public class ControlStructureTypingUtils {
     private static final Logger LOG = Logger.getInstance(ControlStructureTypingUtils.class);
 
     public enum ResolveConstruct {
-        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), WHEN("when");
+        IF("if"), ELVIS("elvis"), EXCL_EXCL("ExclExcl"), WHEN("when"), WHEN_COERCED_TO_UNIT("whenCoercedToUnit");
 
         private final String name;
         private final Name specialFunctionName;
@@ -179,7 +179,16 @@ public class ControlStructureTypingUtils {
             );
             valueParameters.add(valueParameter);
         }
-        KotlinType returnType = construct != ResolveConstruct.ELVIS ? type : TypeUtilsKt.replaceAnnotations(type, AnnotationsForResolveKt.getExactInAnnotations());
+        KotlinType returnType;
+        if (construct == ResolveConstruct.ELVIS) {
+            returnType = TypeUtilsKt.replaceAnnotations(type, AnnotationsForResolveKt.getExactInAnnotations());
+        }
+        else if (construct == ResolveConstruct.WHEN_COERCED_TO_UNIT) {
+            returnType = moduleDescriptor.getBuiltIns().getUnitType();
+        }
+        else {
+            returnType = type;
+        }
         function.initialize(
                 null,
                 null,
