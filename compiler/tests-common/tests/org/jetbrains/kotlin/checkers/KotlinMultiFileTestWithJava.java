@@ -13,15 +13,18 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.cli.common.config.ContentRootsKt;
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles;
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment;
+import org.jetbrains.kotlin.cli.jvm.plugins.PluginCliParser;
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime;
 import org.jetbrains.kotlin.config.CompilerConfiguration;
 import org.jetbrains.kotlin.config.JVMConfigurationKeys;
+import org.jetbrains.kotlin.parsing.KotlinParserDefinition;
 import org.jetbrains.kotlin.script.StandardScriptDefinition;
 import org.jetbrains.kotlin.test.ConfigurationKind;
 import org.jetbrains.kotlin.test.InTextDirectivesUtils;
 import org.jetbrains.kotlin.test.KotlinTestUtils;
 import org.jetbrains.kotlin.test.TestJdkKind;
 import org.jetbrains.kotlin.test.testFramework.KtUsefulTestCase;
+import org.jetbrains.kotlin.utils.PathUtil;
 
 import java.io.File;
 import java.util.*;
@@ -62,6 +65,11 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
     }
 
     @NotNull
+    protected Boolean isScriptingNeeded(@NotNull File file) {
+        return file.getName().endsWith(KotlinParserDefinition.STD_SCRIPT_EXT);
+    }
+
+    @NotNull
     protected KotlinCoreEnvironment createEnvironment(@NotNull File file) {
         CompilerConfiguration configuration = KotlinTestUtils.newConfiguration(
                 getConfigurationKind(),
@@ -69,7 +77,15 @@ public abstract class KotlinMultiFileTestWithJava<M, F> extends KtUsefulTestCase
                 getClasspath(file),
                 isJavaSourceRootNeeded() ? Collections.singletonList(javaFilesDir) : Collections.emptyList()
         );
-        configuration.add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, StandardScriptDefinition.INSTANCE);
+        if (isScriptingNeeded(file)) {
+            configuration.add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, StandardScriptDefinition.INSTANCE);
+            File libPath = PathUtil.getKotlinPathsForCompiler().getLibPath();
+            List<String> pluginClasspath = new ArrayList<>();
+            pluginClasspath.add(new File(libPath, PathUtil.KOTLIN_SCRIPTING_COMPILER_PLUGIN_JAR).getPath());
+            pluginClasspath.add(new File(libPath, PathUtil.KOTLIN_SCRIPTING_COMMON_JAR).getPath());
+            pluginClasspath.add(new File(libPath, PathUtil.KOTLIN_SCRIPTING_JVM_JAR).getPath());
+            PluginCliParser.loadPluginsSafe(pluginClasspath, null, configuration);
+        }
         if (isKotlinSourceRootNeeded()) {
             ContentRootsKt.addKotlinSourceRoot(configuration, kotlinSourceRoot.getPath());
         }
